@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Podgląd zawodnika — kevlar proceduralny</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#0d1117;color:#cfdae4;
+    font:14px/1.5 Inter,system-ui,sans-serif}
+  #panel{position:fixed;left:14px;top:14px;z-index:5;background:rgba(12,16,22,.9);
+    border:1px solid #22303d;padding:12px 14px;border-radius:4px;max-width:280px}
+  h1{font-size:15px;margin:0 0 8px;letter-spacing:.04em}
+  label{display:block;font-size:11px;color:#8fa0ae;margin:9px 0 3px;letter-spacing:.08em}
+  input,select{width:100%;background:#101922;border:1px solid #2a3947;color:#cfdae4;
+    padding:6px 8px;font:inherit;font-size:13px;border-radius:3px}
+  input[type=color]{height:32px;padding:2px}
+  .rzad{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  button{width:100%;margin-top:12px;background:#ffe7bc;color:#14181d;border:0;
+    padding:9px;font:inherit;font-weight:600;cursor:pointer;border-radius:3px}
+  #stan{margin-top:10px;font-size:11.5px;color:#8fa0ae;line-height:1.45}
+  #blad{color:#e8332a}
+  .pod{position:fixed;right:14px;bottom:12px;font-size:11.5px;color:#6a7a88}
+</style>
+</head>
+<body>
+<div id="panel">
+  <h1>Podgląd zawodnika</h1>
+  <label>Nazwisko na plecach</label>
+  <input id="nazwisko" value="KUBERA">
+  <label>Numer</label>
+  <input id="numer" value="415">
+  <div class="rzad">
+    <div><label>Barwa główna</label><input id="b1" type="color" value="#1c3f8f"></div>
+    <div><label>Barwa dodatkowa</label><input id="b2" type="color" value="#f2c500"></div>
+  </div>
+  <label>Kask (kolor pola startowego)</label>
+  <input id="bk" type="color" value="#d81f1f">
+  <label>Poza</label>
+  <select id="poza">
+    <option value="tpose">Wyjściowa (T)</option>
+    <option value="jazda" selected>Pozycja jazdy</option>
+    <option value="slizg">Broadslide</option>
+  </select>
+  <button id="odswiez">Przemaluj kevlar</button>
+  <div id="stan">wczytywanie modelu…</div>
+  <div id="doceloweTxt" style="margin-top:8px;font-size:11px;color:#7f8f9d"></div>
+</div>
+<div class="pod">myszą obracasz · kółkiem przybliżasz</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="js/kevlar.js"></script>
+<script>
+const scena = new THREE.Scene();
+scena.background = new THREE.Color(0x131a22);
+const kam = new THREE.PerspectiveCamera(42, innerWidth/innerHeight, 0.05, 60);
+kam.position.set(1.5, 1.05, 1.9);
+const rend = new THREE.WebGLRenderer({antialias:true});
+rend.setPixelRatio(Math.min(devicePixelRatio||1,2));
+rend.setSize(innerWidth, innerHeight);
+rend.outputEncoding = THREE.sRGBEncoding;
+rend.toneMapping = THREE.ACESFilmicToneMapping;
+rend.toneMappingExposure = 1.0;
+document.body.appendChild(rend.domElement);
+const ster = new THREE.OrbitControls(kam, rend.domElement);
+ster.target.set(0, 0.80, 0.10);
+
+scena.add(new THREE.HemisphereLight(0xdfe8f2, 0x4a3a2c, 0.75));
+const kier = new THREE.DirectionalLight(0xfff2dc, 1.15);
+kier.position.set(3, 6, 4); scena.add(kier);
+const tyl = new THREE.DirectionalLight(0x9fc4ff, 0.45);
+tyl.position.set(-3, 2, -4); scena.add(tyl);
+const podloga = new THREE.Mesh(new THREE.CircleGeometry(4, 40),
+  new THREE.MeshStandardMaterial({color:0x6b4a34, roughness:.95}));
+podloga.rotation.x = -Math.PI/2; scena.add(podloga);
+
+const el = id => document.getElementById(id);
+let Z = null, mat = null, K = {}, spoczynek = null;
+const kroki = [];
+const raport = (t, ok) => { kroki.push((ok===false?'✗ ':'✓ ')+t); el('stan').innerHTML = kroki.join('<br>'); };
+
+/* POZOWANIE PRZEZ ODWROTNĄ KINEMATYKĘ
+
+   Zgadywanie kątów Eulera nie działa, bo osie lokalne kości Mixamo nie są
+   zgodne z niczym oczywistym. Zamiast tego obracamy kości w przestrzeni
+   ŚWIATA: kość celuje w zadany punkt, a łokieć czy kolano wyznaczamy
+   klasycznym rozwiązaniem trójkąta. To ta sama metoda, której użyję przy
+   wpięciu modelu do gry. */
+
+const _qa = new THREE.Quaternion(), _qb = new THREE.Quaternion(), _qc = new THREE.Quaternion();
+const _va = new THREE.Vector3(), _vb = new THREE.Vector3(), _vc = new THREE.Vector3();
+
+function obrocWSwiecie(kosc, os, kat) {
+  if (!kosc) return;
+  const qP = kosc.parent.getWorldQuaternion(_qa).invert();
+  const qW = kosc.getWorldQuaternion(_qb);
+  const obr = _qc.setFromAxisAngle(os, kat);
+  kosc.quaternion.copy(qP.multiply(obr).multiply(qW));
+  kosc.updateWorldMatrix(false, true);
+}
+
+// Kości Mixamo mają oś wzdłuż lokalnego +Y — kierujemy ją na zadany punkt.
+function celuj(kosc, cel) {
+  if (!kosc) return;
+  kosc.updateWorldMatrix(true, false);
+  const poz = _va.setFromMatrixPosition(kosc.matrixWorld);
+  const kier = _vb.copy(cel).sub(poz);
+  if (kier.lengthSq() < 1e-9) return;
+  kier.normalize();
+  const qW = kosc.getWorldQuaternion(_qa).clone();
+  const os = _vc.set(0, 1, 0).applyQuaternion(qW).normalize();
+  const obr = _qb.setFromUnitVectors(os, kier);
+  const nowyW = obr.clone().multiply(qW);
+  const qP = kosc.parent.getWorldQuaternion(_qc).invert();
+  kosc.quaternion.copy(qP.multiply(nowyW));
+  kosc.updateWorldMatrix(false, true);
+}
+
+function ikDwie(gorna, dolna, koniec, cel, biegun) {
+  if (!gorna || !dolna || !koniec) return null;
+  gorna.updateWorldMatrix(true, false); dolna.updateWorldMatrix(true, false); koniec.updateWorldMatrix(true, false);
+  const A = new THREE.Vector3().setFromMatrixPosition(gorna.matrixWorld);
+  const B = new THREE.Vector3().setFromMatrixPosition(dolna.matrixWorld);
+  const C = new THREE.Vector3().setFromMatrixPosition(koniec.matrixWorld);
+  const l1 = A.distanceTo(B), l2 = B.distanceTo(C);
+  const kier = new THREE.Vector3().subVectors(cel, A);
+  const d = Math.min(kier.length(), (l1 + l2) * 0.995);
+  if (d < 1e-6) return null;
+  kier.normalize();
+  const a = (l1 * l1 - l2 * l2 + d * d) / (2 * d);
+  const h = Math.sqrt(Math.max(0, l1 * l1 - a * a));
+  const bg = new THREE.Vector3().subVectors(biegun, A);
+  bg.addScaledVector(kier, -bg.dot(kier));
+  if (bg.lengthSq() < 1e-9) bg.set(0, 0, 1); else bg.normalize();
+  const staw = A.clone().addScaledVector(kier, a).addScaledVector(bg, h);
+  celuj(gorna, staw);
+  celuj(dolna, cel);
+  koniec.updateWorldMatrix(true, false);
+  return new THREE.Vector3().setFromMatrixPosition(koniec.matrixWorld).distanceTo(cel);
+}
+
+/* PUNKTY MOCOWANIA Z NASZEGO MOTOCYKLA (metry, układ gry: Z do przodu).
+   Wzięte wprost z modelu motocykla w grze, żeby zawodnik siedział dokładnie
+   tam, gdzie usiądzie na torze — a nie w wymyślonej pozycji. */
+const MOTOCYKL = {
+  siodlo:  new THREE.Vector3(0, 0.843, -0.161),
+  manetka: new THREE.Vector3(0.343, 1.078, 0.518),   // lustrzana dla drugiej ręki
+  podnozek: new THREE.Vector3(0.1225, 0.301, -0.154)
+};
+
+function znaczniki() {
+  const g = new THREE.Group();
+  const kula = (p, kol) => {
+    const m = new THREE.Mesh(new THREE.SphereGeometry(0.028, 12, 10),
+      new THREE.MeshBasicMaterial({ color: kol }));
+    m.position.copy(p); g.add(m);
+  };
+  kula(MOTOCYKL.siodlo, 0xffe7bc);
+  [1, -1].forEach(s => {
+    kula(new THREE.Vector3(MOTOCYKL.manetka.x * s, MOTOCYKL.manetka.y, MOTOCYKL.manetka.z), 0x4ea3ff);
+    kula(new THREE.Vector3(MOTOCYKL.podnozek.x * s, MOTOCYKL.podnozek.y, MOTOCYKL.podnozek.z), 0x7ee08e);
+  });
+  return g;
+}
+
+/* Zaciśnięcie dłoni na manetce. Osie lokalne kości palców są nieznane, więc
+   zamiast zgadywać sprawdzamy OBA znaki obrotu i zostawiamy ten, który zbliża
+   opuszkę do nadgarstka — czyli faktycznie zgina palec, a nie go odgina. */
+function zaciśnijDłoń(strona, sila) {
+  const dlon = K[strona + 'Hand']; if (!dlon) return;
+  dlon.updateWorldMatrix(true, false);
+  const nadgarstek = new THREE.Vector3().setFromMatrixPosition(dlon.matrixWorld);
+  const palce = ['Index', 'Middle', 'Ring', 'Pinky', 'Thumb'];
+  // oś zgięcia: linia kostek, od palca wskazującego do małego
+  const wsk = K[strona + 'HandIndex1'], maly = K[strona + 'HandPinky1'];
+  if (!wsk || !maly) return;
+  wsk.updateWorldMatrix(true, false); maly.updateWorldMatrix(true, false);
+  const os = new THREE.Vector3()
+    .setFromMatrixPosition(wsk.matrixWorld)
+    .sub(new THREE.Vector3().setFromMatrixPosition(maly.matrixWorld)).normalize();
+  for (const p of palce) {
+    const czlony = [1, 2, 3].map(i => K[strona + 'Hand' + p + i]).filter(Boolean);
+    const koniec = K[strona + 'Hand' + p + '4'] || czlony[czlony.length - 1];
+    if (!czlony.length || !koniec) continue;
+    const kat = (p === 'Thumb' ? 0.55 : 1.05) * sila;
+    koniec.updateWorldMatrix(true, false);
+    const przed = new THREE.Vector3().setFromMatrixPosition(koniec.matrixWorld).distanceTo(nadgarstek);
+    czlony.forEach(k => obrocWSwiecie(k, os, kat));
+    koniec.updateWorldMatrix(true, false);
+    const po = new THREE.Vector3().setFromMatrixPosition(koniec.matrixWorld).distanceTo(nadgarstek);
+    if (po > przed) czlony.forEach(k => obrocWSwiecie(k, os, -2 * kat));   // zły znak — w drugą stronę
+  }
+}
+
+/* Obrót dłoni wokół własnej osi. Celowanie ustawia tylko KIERUNEK kości, a nie
+   to, którą stroną zwrócona jest dłoń — stąd wrażenie, że ręka jest odwrócona.
+   Przy chwycie za kierownicę linia kostek biegnie wzdłuż rury, czyli w osi X. */
+function obrocDlon(strona) {
+  const dlon = K[strona + 'Hand'], wsk = K[strona + 'HandIndex1'], maly = K[strona + 'HandPinky1'];
+  if (!dlon || !wsk || !maly) return;
+  dlon.updateWorldMatrix(true, false); wsk.updateWorldMatrix(true, false); maly.updateWorldMatrix(true, false);
+  const osD = new THREE.Vector3(0, 1, 0).applyQuaternion(dlon.getWorldQuaternion(new THREE.Quaternion())).normalize();
+  const kostki = new THREE.Vector3().setFromMatrixPosition(wsk.matrixWorld)
+    .sub(new THREE.Vector3().setFromMatrixPosition(maly.matrixWorld));
+  kostki.addScaledVector(osD, -kostki.dot(osD));
+  if (kostki.lengthSq() < 1e-9) return;
+  kostki.normalize();
+  const cel = new THREE.Vector3(1, 0, 0);
+  cel.addScaledVector(osD, -cel.dot(osD));
+  if (cel.lengthSq() < 1e-9) return;
+  cel.normalize();
+  const kat = Math.atan2(new THREE.Vector3().crossVectors(kostki, cel).dot(osD), kostki.dot(cel));
+  obrocWSwiecie(dlon, osD, kat);
+}
+
+function prostujNadgarstek(przedramie, dlon, cel) {
+  if (!przedramie || !dlon) return;
+  przedramie.updateWorldMatrix(true, false);
+  const p = new THREE.Vector3().setFromMatrixPosition(przedramie.matrixWorld);
+  const kier = new THREE.Vector3().subVectors(cel, p).normalize();
+  celuj(dlon, new THREE.Vector3().copy(cel).addScaledVector(kier, 0.12));
+}
+
+function ustawPoze(nazwa) {
+  if (!Z || !spoczynek) return;
+  const bones = Z.siatka.skeleton.bones;
+  bones.forEach((b, i) => b.quaternion.copy(spoczynek[i]));
+  // biodra na siodle: przesuwamy cały model, bo obrót kręgosłupa ich nie rusza
+  Z.scena.position.set(0, 0, 0);
+  Z.scena.updateMatrixWorld(true);
+  const bio0 = new THREE.Vector3().setFromMatrixPosition(K.Hips.matrixWorld);
+  Z.scena.position.copy(MOTOCYKL.siodlo).sub(bio0).add(new THREE.Vector3(0, 0.055, 0));
+  Z.scena.updateMatrixWorld(true);
+  if (nazwa === 'tpose') { el('doceloweTxt').textContent = ''; return; }
+
+  const OX = new THREE.Vector3(1, 0, 0), OY = new THREE.Vector3(0, 1, 0);
+  // Pochylenie tułowia nie jest ozdobą: bark siedzi 46 cm nad biodrami, więc
+  // dopiero pochylony sięga manetki, która leży 68 cm przed siodłem.
+  obrocWSwiecie(K.Spine, OX, 0.36);
+  obrocWSwiecie(K.Spine1, OX, 0.30);
+  obrocWSwiecie(K.Spine2, OX, 0.24);
+  obrocWSwiecie(K.Neck, OX, -0.54);
+  obrocWSwiecie(K.Head, OX, -0.40);
+  // Skręt tułowia w ślizgu był tak duży, że prawa ręka nie sięgała manetki
+  // (panel pokazywał 13 cm odchyłki). Zmniejszony, a barki odchylone do przodu
+  // dokładają kilka centymetrów zasięgu obu ramionom.
+  if (nazwa === 'slizg') { obrocWSwiecie(K.Spine, OY, -0.14); obrocWSwiecie(K.Spine1, OY, -0.09); }
+  obrocWSwiecie(K.LeftShoulder, OY, -0.22);
+  obrocWSwiecie(K.RightShoulder, OY, 0.22);
+
+  const M = MOTOCYKL;
+  const chwytL = new THREE.Vector3( M.manetka.x, M.manetka.y, M.manetka.z);
+  const chwytP = new THREE.Vector3(-M.manetka.x, M.manetka.y, M.manetka.z);
+  const stopaP = new THREE.Vector3(-M.podnozek.x, M.podnozek.y, M.podnozek.z);
+  const stopaL = nazwa === 'slizg'
+    ? new THREE.Vector3(0.44, 0.27, 0.20)                 // lewa noga wystawiona w ślizgu
+    : new THREE.Vector3(M.podnozek.x, M.podnozek.y, M.podnozek.z);
+
+  const biodra = new THREE.Vector3().setFromMatrixPosition(K.Hips.matrixWorld);
+  // Bieguny zgięcia MUSZĄ być osobne dla lewej i prawej strony. Wspólny biegun
+  // pośrodku ciągnął oba łokcie w to samo miejsce, przez co jedna ręka układała
+  // się w drugą stronę — łokieć wychodził do wewnątrz zamiast na zewnątrz.
+  const bLokL = biodra.clone().add(new THREE.Vector3( 0.70, 0.60, -0.45));
+  const bLokP = biodra.clone().add(new THREE.Vector3(-0.70, 0.60, -0.45));
+  const bKolL = biodra.clone().add(new THREE.Vector3( 0.55, 0.35, 1.40));
+  const bKolP = biodra.clone().add(new THREE.Vector3(-0.55, 0.35, 1.40));
+
+  const d = [];
+  d.push(ikDwie(K.LeftArm, K.LeftForeArm, K.LeftHand, chwytL, bLokL));
+  d.push(ikDwie(K.RightArm, K.RightForeArm, K.RightHand, chwytP, bLokP));
+  d.push(ikDwie(K.LeftUpLeg, K.LeftLeg, K.LeftFoot, stopaL, bKolL));
+  d.push(ikDwie(K.RightUpLeg, K.RightLeg, K.RightFoot, stopaP, bKolP));
+  // Prostowanie nadgarstka: po złożeniu ramienia dłoń zachowywała obrót
+  // spoczynkowy i łamała się pod dziwnym kątem. Kierujemy ją dalej w tę samą
+  // stronę, w którą patrzy przedramię.
+  prostujNadgarstek(K.LeftForeArm, K.LeftHand, chwytL);
+  prostujNadgarstek(K.RightForeArm, K.RightHand, chwytP);
+  obrocDlon('Left'); obrocDlon('Right');
+  zaciśnijDłoń('Left', 1); zaciśnijDłoń('Right', 1);
+  const naz = ['lewa ręka', 'prawa ręka', 'lewa noga', 'prawa noga'];
+  el('doceloweTxt').innerHTML = 'odchyłka od punktów motocykla: ' +
+    d.map((v, i) => naz[i] + ' ' + (v === null ? '—' : (v * 100).toFixed(0) + ' cm')).join(', ') +
+    '<br>kule: kremowa = siodło, niebieskie = manetki, zielone = podnóżki';
+}
+
+function przemaluj() {
+  if (!Z) return;
+  const t0 = performance.now();
+  try {
+    const tex = Z.tekstura({
+      barwa1: el('b1').value, barwa2: el('b2').value, kask: el('bk').value,
+      nazwisko: el('nazwisko').value, numer: el('numer').value
+    });
+    if (mat.map) mat.map.dispose();
+    mat.map = tex; mat.needsUpdate = true;
+    raport(`kevlar przemalowany w ${Math.round(performance.now() - t0)} ms`);
+  } catch (e) { raport('malowanie nie powiodło się: ' + e.message, false); }
+}
+
+wczytajZawodnika('modele/zawodnik.gltf', 'modele/tekstury/faktura.png', 'modele/tekstury/normalna.png')
+  .then(z => {
+    Z = z;
+    z.scena.scale.setScalar(z.skala);
+    scena.add(z.scena);
+    const tri = z.siatka.geometry.index ? z.siatka.geometry.index.count / 3 : 0;
+    raport(`model: ${tri.toLocaleString('pl')} trójkątów, ${z.siatka.skeleton.bones.length} kości`);
+    raport(`tekstury wczytane (faktura + normalne)`);
+    const pok = z.mapa.pokrycie;
+    raport(`mapa partii ciała: ${(pok * 100).toFixed(1)}% atlasu`, pok > 0.4);
+    if (z.probka) z.probka.forEach(t => raport('kość: ' + t));
+    if (pok <= 0.4) raport('oczekiwane ok. 68% — coś poszło nie tak', false);
+    mat = new THREE.MeshStandardMaterial({
+      roughness: 0.72, metalness: 0.0,
+      normalMap: z.mapaNorm, normalScale: new THREE.Vector2(0.9, 0.9),
+      skinning: true
+    });
+    z.siatka.material = mat;
+    z.siatka.frustumCulled = false;
+    K = {};
+    z.siatka.skeleton.bones.forEach(b => K[bezPrzedrostka(b.name)] = b);
+    raport('kości rozpoznane: ' + Object.keys(K).filter(n => /^(Hips|Spine|LeftArm|RightUpLeg)$/.test(n)).length + '/4 kluczowych',
+           !!(K.Hips && K.Spine && K.LeftArm && K.RightUpLeg));
+    spoczynek = z.siatka.skeleton.bones.map(b => b.quaternion.clone());
+    scena.add(znaczniki());
+    ustawPoze(el('poza').value);
+    przemaluj();
+  })
+  .catch(e => {
+    raport('wczytywanie nie powiodło się: ' + (e && e.message ? e.message : e), false);
+    el('stan').innerHTML += '<br><br>Jeśli w konsoli widzisz błąd sieci albo CORS, otwierasz plik z dysku. Uruchom serwer: <code>python3 -m http.server 8000</code>';
+  });
+
+el('odswiez').addEventListener('click', przemaluj);
+el('poza').addEventListener('change', () => ustawPoze(el('poza').value));
+addEventListener('resize', () => {
+  kam.aspect = innerWidth/innerHeight; kam.updateProjectionMatrix();
+  rend.setSize(innerWidth, innerHeight);
+});
+(function petla(){ requestAnimationFrame(petla); ster.update(); rend.render(scena, kam); })();
+</script>
+</body>
+</html>
