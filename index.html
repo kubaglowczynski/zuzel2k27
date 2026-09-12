@@ -1,516 +1,1728 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pl">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
-<title>Żużel 3D — bieg o 3 punkty</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-:root{
-  --noc:#080c11; --noc2:#111a24; --zuzel:#8a5a37; --piach:#c69a6d;
-  --jupiter:#ffe7bc; --kreda:#e8e2d8; --stal:#6f7c88;
-  --k1:#d81f1f; --k2:#1f5fd6; --k3:#f0f0ee; --k4:#f2c500;
-  --disp:"Barlow Condensed",'Arial Narrow',system-ui,sans-serif;
-  --body:"Barlow",system-ui,-apple-system,sans-serif;
-}
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-/* atrybut hidden musi wygrywać z display z arkusza autorskiego */
-[hidden]{display:none !important}
-html,body{height:100%;overflow:hidden;background:var(--noc);color:var(--kreda);font-family:var(--body)}
-canvas{display:block}
-#scena{position:fixed;inset:0;z-index:0}
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover"
+    />
+    <title>Żużel2k27 Beta 1.0</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --noc: #080c11;
+        --noc2: #111a24;
+        --zuzel: #8a5a37;
+        --piach: #c69a6d;
+        --jupiter: #ffe7bc;
+        --kreda: #e8e2d8;
+        --stal: #6f7c88;
+        --k1: #d81f1f;
+        --k2: #1f5fd6;
+        --k3: #f0f0ee;
+        --k4: #f2c500;
+        --disp: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+        --body: "Barlow", system-ui, -apple-system, sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        -webkit-tap-highlight-color: transparent;
+      }
+      /* atrybut hidden musi wygrywać z display z arkusza autorskiego */
+      [hidden] {
+        display: none !important;
+      }
+      html,
+      body {
+        height: 100%;
+        overflow: hidden;
+        background: var(--noc);
+        color: var(--kreda);
+        font-family: var(--body);
+      }
+      canvas {
+        display: block;
+      }
+      #scena {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+      }
 
-/* ---------- MENU ---------- */
-#menu{position:fixed;inset:0;z-index:40;display:grid;place-items:center;overflow:hidden;
-  background:
-    radial-gradient(1100px 520px at 50% -14%, rgba(255,231,188,.18), transparent 62%),
-    radial-gradient(700px 380px at 8% 108%, rgba(138,90,55,.34), transparent 60%),
-    linear-gradient(#080c11 0%, #0d141c 48%, #131a20 100%);
-}
-.wrap{width:min(1180px,100vw);padding:clamp(14px,3.2vh,40px) clamp(16px,3.4vw,40px);
-  transform-origin:center center;will-change:transform}
-.naglowek{display:flex;align-items:flex-end;gap:22px;flex-wrap:wrap;border-bottom:2px solid #263544;padding-bottom:14px}
-h1{font-family:var(--disp);font-weight:700;font-size:clamp(40px,7.6vw,78px);line-height:.86;letter-spacing:-.015em}
-h1 span{display:block;font-size:.34em;font-weight:600;letter-spacing:.30em;color:var(--piach);margin-bottom:.5em}
-.podtytul{font-size:15px;color:#9fb0bf;max-width:44ch;line-height:1.5;padding-bottom:6px}
+      /* ---------- MENU ---------- */
+      #menu {
+        position: fixed;
+        inset: 0;
+        z-index: 40;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        background:
+          radial-gradient(
+            1100px 520px at 50% -14%,
+            rgba(255, 231, 188, 0.18),
+            transparent 62%
+          ),
+          radial-gradient(
+            700px 380px at 8% 108%,
+            rgba(138, 90, 55, 0.34),
+            transparent 60%
+          ),
+          linear-gradient(#080c11 0%, #0d141c 48%, #131a20 100%);
+      }
+      .wrap {
+        width: min(1180px, 100vw);
+        padding: clamp(14px, 3.2vh, 40px) clamp(16px, 3.4vw, 40px);
+        transform-origin: center center;
+        will-change: transform;
+      }
+      .naglowek {
+        display: flex;
+        align-items: flex-end;
+        gap: 22px;
+        flex-wrap: wrap;
+        border-bottom: 2px solid #263544;
+        padding-bottom: 14px;
+      }
+      h1 {
+        font-family: var(--disp);
+        font-weight: 700;
+        font-size: clamp(40px, 7.6vw, 78px);
+        line-height: 0.86;
+        letter-spacing: -0.015em;
+      }
+      h1 span {
+        display: block;
+        font-size: 0.34em;
+        font-weight: 600;
+        letter-spacing: 0.3em;
+        color: var(--piach);
+        margin-bottom: 0.5em;
+      }
+      .podtytul {
+        font-size: 15px;
+        color: #9fb0bf;
+        max-width: 44ch;
+        line-height: 1.5;
+        padding-bottom: 6px;
+      }
 
-.sekcja{margin-top:clamp(18px,3.4vh,34px)}
-.etykieta{font-family:var(--disp);font-size:19px;font-weight:600;color:#93a5b4;margin-bottom:10px;
-  display:flex;align-items:center;gap:12px}
-.etykieta::after{content:"";flex:1;height:1px;background:#22303d}
+      .sekcja {
+        margin-top: clamp(18px, 3.4vh, 34px);
+      }
+      .etykieta {
+        font-family: var(--disp);
+        font-size: 19px;
+        font-weight: 600;
+        color: #93a5b4;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .etykieta::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: #22303d;
+      }
 
-/* karty pól startowych — jak tablica pod taśmą */
-.pola{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-@media(max-width:760px){.pola{grid-template-columns:repeat(2,1fr)}}
-.pole{position:relative;background:#111a23;border:1px solid #22303d;cursor:pointer;
-  transition:transform .14s ease, border-color .14s ease, background .14s ease;text-align:left;color:inherit;font:inherit;overflow:hidden}
-.pole:hover{transform:translateY(-3px);border-color:#3b5062;background:#141f2a}
-.pole:focus-visible{outline:2px solid var(--jupiter);outline-offset:2px}
-.pole.wybrany{border-color:var(--kask);background:#16222d}
-.pole.wybrany::after{content:"";position:absolute;inset:0;border:2px solid var(--kask);pointer-events:none}
-.kask{height:58px;background:var(--kask);display:flex;align-items:center;justify-content:space-between;padding:0 12px}
-.kask b{font-family:var(--disp);font-size:34px;font-weight:700;color:rgba(0,0,0,.62);line-height:1}
-.kask i{font-family:var(--disp);font-style:normal;font-size:13px;font-weight:600;letter-spacing:.14em;color:rgba(0,0,0,.55)}
-.pole.jasny .kask b,.pole.jasny .kask i{color:rgba(0,0,0,.7)}
-.tresc{padding:12px 12px 14px}
-.imie{font-family:var(--disp);font-size:23px;font-weight:600;line-height:1.05}
-.opis{font-size:12.5px;color:#8fa0ae;margin:5px 0 11px;line-height:1.45;min-height:2.9em}
-.stat{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:11.5px;color:#8fa0ae}
-.stat span{width:52px;flex:none}
-.pasek{flex:1;height:5px;background:#1e2a35}
-.pasek i{display:block;height:100%;background:var(--kask)}
+      /* karty pól startowych — jak tablica pod taśmą */
+      .pola {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+      }
+      @media (max-width: 760px) {
+        .pola {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      .pole {
+        position: relative;
+        background: #111a23;
+        border: 1px solid #22303d;
+        cursor: pointer;
+        transition:
+          transform 0.14s ease,
+          border-color 0.14s ease,
+          background 0.14s ease;
+        text-align: left;
+        color: inherit;
+        font: inherit;
+        overflow: hidden;
+      }
+      .pole:hover {
+        transform: translateY(-3px);
+        border-color: #3b5062;
+        background: #141f2a;
+      }
+      .pole:focus-visible {
+        outline: 2px solid var(--jupiter);
+        outline-offset: 2px;
+      }
+      .pole.wybrany {
+        border-color: var(--kask);
+        background: #16222d;
+      }
+      .pole.wybrany::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border: 2px solid var(--kask);
+        pointer-events: none;
+      }
+      .kask {
+        height: 58px;
+        background: var(--kask);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 12px;
+      }
+      .kask b {
+        font-family: var(--disp);
+        font-size: 34px;
+        font-weight: 700;
+        color: rgba(0, 0, 0, 0.62);
+        line-height: 1;
+      }
+      .kask i {
+        font-family: var(--disp);
+        font-style: normal;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        color: rgba(0, 0, 0, 0.55);
+      }
+      .pole.jasny .kask b,
+      .pole.jasny .kask i {
+        color: rgba(0, 0, 0, 0.7);
+      }
+      .tresc {
+        padding: 12px 12px 14px;
+      }
+      .imie {
+        font-family: var(--disp);
+        font-size: 23px;
+        font-weight: 600;
+        line-height: 1.05;
+      }
+      .opis {
+        font-size: 12.5px;
+        color: #8fa0ae;
+        margin: 5px 0 11px;
+        line-height: 1.45;
+        min-height: 2.9em;
+      }
+      .stat {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 6px;
+        font-size: 11.5px;
+        color: #8fa0ae;
+      }
+      .stat span {
+        width: 52px;
+        flex: none;
+      }
+      .pasek {
+        flex: 1;
+        height: 5px;
+        background: #1e2a35;
+      }
+      .pasek i {
+        display: block;
+        height: 100%;
+        background: var(--kask);
+      }
 
-/* ustawienia */
-.ustawienia{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
-.grupa{background:#101922;border:1px solid #22303d;padding:12px 14px}
-.grupa h3{font-family:var(--disp);font-weight:600;font-size:16px;color:#93a5b4;margin-bottom:9px}
-.opcje{display:flex;gap:6px;flex-wrap:wrap}
-.opcja{flex:1;min-width:66px;padding:9px 8px;background:#16212c;border:1px solid #263544;color:#b9c6d1;
-  font:600 13px/1.15 var(--body);cursor:pointer;transition:.13s;text-align:center}
-.opcja:hover{background:#1c2934}
-.opcja[aria-pressed="true"]{background:var(--jupiter);border-color:var(--jupiter);color:#12181e}
-.opcja small{display:block;font-weight:400;font-size:10.5px;opacity:.72;margin-top:3px}
+      /* ustawienia */
+      .ustawienia {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 14px;
+      }
+      .grupa {
+        background: #101922;
+        border: 1px solid #22303d;
+        padding: 12px 14px;
+      }
+      .grupa h3 {
+        font-family: var(--disp);
+        font-weight: 600;
+        font-size: 16px;
+        color: #93a5b4;
+        margin-bottom: 9px;
+      }
+      .opcje {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .opcja {
+        flex: 1;
+        min-width: 66px;
+        padding: 9px 8px;
+        background: #16212c;
+        border: 1px solid #263544;
+        color: #b9c6d1;
+        font: 600 13px/1.15 var(--body);
+        cursor: pointer;
+        transition: 0.13s;
+        text-align: center;
+      }
+      .opcja:hover {
+        background: #1c2934;
+      }
+      .opcja[aria-pressed="true"] {
+        background: var(--jupiter);
+        border-color: var(--jupiter);
+        color: #12181e;
+      }
+      .opcja small {
+        display: block;
+        font-weight: 400;
+        font-size: 10.5px;
+        opacity: 0.72;
+        margin-top: 3px;
+      }
 
-.start{margin-top:26px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
-#jedziemy{font-family:var(--disp);font-size:26px;font-weight:700;letter-spacing:.03em;padding:15px 46px;
-  background:#1fbe4a;color:#05130a;border:none;cursor:pointer;transition:.14s}
-#jedziemy:hover{background:#2ada5c}
-#jedziemy:disabled{background:#2c3a46;color:#6a7a88;cursor:not-allowed}
-.sterowanie{font-size:12.5px;color:#8fa0ae;line-height:1.7}
-.sterowanie kbd{display:inline-block;min-width:20px;padding:1px 6px;margin:0 1px;background:#1b2833;
-  border:1px solid #2e3f4d;border-bottom-width:2px;font:600 11.5px/1.5 var(--body);color:#cfd9e2}
-.stopka{margin-top:22px;padding-top:14px;border-top:1px solid #1c2833;font-size:11.5px;color:#63727f;line-height:1.6}
-</style>
-</head>
-<body>
-<canvas id="scena"></canvas>
+      .start {
+        margin-top: 26px;
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      #jedziemy {
+        font-family: var(--disp);
+        font-size: 26px;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        padding: 15px 46px;
+        background: #1fbe4a;
+        color: #05130a;
+        border: none;
+        cursor: pointer;
+        transition: 0.14s;
+      }
+      #jedziemy:hover {
+        background: #2ada5c;
+      }
+      #jedziemy:disabled {
+        background: #2c3a46;
+        color: #6a7a88;
+        cursor: not-allowed;
+      }
+      .sterowanie {
+        font-size: 12.5px;
+        color: #8fa0ae;
+        line-height: 1.7;
+      }
+      .sterowanie kbd {
+        display: inline-block;
+        min-width: 20px;
+        padding: 1px 6px;
+        margin: 0 1px;
+        background: #1b2833;
+        border: 1px solid #2e3f4d;
+        border-bottom-width: 2px;
+        font: 600 11.5px/1.5 var(--body);
+        color: #cfd9e2;
+      }
+      .stopka {
+        margin-top: 22px;
+        padding-top: 14px;
+        border-top: 1px solid #1c2833;
+        font-size: 11.5px;
+        color: #63727f;
+        line-height: 1.6;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="scena"></canvas>
 
-<!-- =================== MENU =================== -->
-<div id="menu">
- <div class="wrap">
-  <div class="naglowek">
-    <h1><span>Turniej indywidualny</span>Żużel 3D</h1>
-    <p class="podtytul">Cztery okrążenia, czterech zawodników, żadnych hamulców. Wybierz pole startowe — kolor kasku
-       przypisany jest do pozycji pod taśmą, dokładnie jak w tabeli biegowej.</p>
-  </div>
+    <!-- =================== MENU =================== -->
+    <div id="menu">
+      <div class="wrap">
+        <div class="naglowek">
+          <h1><span>Turniej indywidualny</span>Żużel 3D</h1>
+          <p class="podtytul">
+            Cztery okrążenia, czterech zawodników, żadnych hamulców. Wybierz
+            pole startowe — kolor kasku przypisany jest do pozycji pod taśmą,
+            dokładnie jak w tabeli biegowej.
+          </p>
+        </div>
 
-  <div class="sekcja">
-    <div class="etykieta">Obsada biegu</div>
-    <div class="pola" id="pola"></div>
-  </div>
+        <div class="sekcja">
+          <div class="etykieta">Obsada biegu</div>
+          <div class="pola" id="pola"></div>
+        </div>
 
-  <div class="sekcja">
-    <div class="etykieta">Warunki</div>
-    <div class="ustawienia">
-      <div class="grupa">
-        <h3>Poziom</h3>
-        <div class="opcje" id="poziom">
-          <button class="opcja" data-v="0">Amator<small>mocna asysta</small></button>
-          <button class="opcja" data-v="1" aria-pressed="true">Zawodowiec<small>lekka asysta</small></button>
-          <button class="opcja" data-v="2">Legenda<small>bez asysty</small></button>
+        <div class="sekcja">
+          <div class="etykieta">Warunki</div>
+          <div class="ustawienia">
+            <div class="grupa">
+              <h3>Poziom</h3>
+              <div class="opcje" id="poziom">
+                <button class="opcja" data-v="0">
+                  Amator<small>mocna asysta</small>
+                </button>
+                <button class="opcja" data-v="1" aria-pressed="true">
+                  Zawodowiec<small>lekka asysta</small>
+                </button>
+                <button class="opcja" data-v="2">
+                  Legenda<small>bez asysty</small>
+                </button>
+              </div>
+            </div>
+            <div class="grupa">
+              <h3>Stan toru</h3>
+              <div class="opcje" id="tor">
+                <button class="opcja" data-v="0">
+                  Świeżo równany<small>równa przyczepność</small>
+                </button>
+                <button class="opcja" data-v="1" aria-pressed="true">
+                  Po kilku biegach<small>dołek i kożuch</small>
+                </button>
+                <button class="opcja" data-v="2">
+                  Wyjeżdżony<small>ślisko przy krawężniku</small>
+                </button>
+              </div>
+            </div>
+            <div class="grupa">
+              <h3>Dystans</h3>
+              <div class="opcje" id="okrazenia">
+                <button class="opcja" data-v="2">
+                  2 okrążenia<small>trening</small>
+                </button>
+                <button class="opcja" data-v="4" aria-pressed="true">
+                  4 okrążenia<small>regulaminowy bieg</small>
+                </button>
+                <button class="opcja" data-v="6">
+                  6 okrążeń<small>wytrzymałość</small>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="start">
+          <button id="jedziemy">Pod taśmę</button>
+          <button id="trening">Trening</button>
+          <button id="meczBtn">Mecz ligowy</button>
+          <div class="sterowanie">
+            <kbd>W</kbd> lub <kbd>↑</kbd> gaz &nbsp; <kbd>S</kbd> zamknięcie
+            gazu &nbsp; <kbd>A</kbd><kbd>D</kbd> lub <kbd>←</kbd
+            ><kbd>→</kbd> kierownica &nbsp; <kbd>Spacja</kbd> lub
+            <kbd>Q</kbd> sprzęgło<br />
+            <kbd>Shift</kbd> ciężar do tyłu &nbsp; <kbd>C</kbd> kamera &nbsp;
+            <kbd>R</kbd> powtórka &nbsp; <kbd>P</kbd> pauza &nbsp;
+            <kbd>M</kbd> dźwięk &nbsp; <kbd>[</kbd><kbd>]</kbd> jasność<br />
+            <span style="color: #7f8f9d"
+              >Kierownica narasta stopniowo — przytrzymaj klawisz, żeby dołożyć
+              skrętu i przechyłu. Jeśli klawiatura gubi kombinacje, użyj
+              <kbd>↑</kbd> + <kbd>A</kbd><kbd>D</kbd> + <kbd>Q</kbd>.</span
+            >
+          </div>
+        </div>
+
+        <p class="stopka">
+          <b style="color: #cfdae4">Trening</b> — sam na torze, bez limitu
+          okrążeń. <kbd>T</kbd> włącza telemetrię, <kbd>R</kbd> wraca na linię
+          bez kasowania stanu toru, <kbd>1</kbd><kbd>2</kbd
+          ><kbd>3</kbd> przełączają poziom w locie.<br />
+          Start: trzymaj <b>Spację</b> (sprzęgło wyciśnięte) i kręć silnik
+          gazem. Gdy taśma pójdzie w górę — puść sprzęgło. Ruszysz przed taśmą,
+          sędzia zapali czerwone.<br />
+          Łuk pokonuje się ślizgiem: przymknij gaz na wejściu, rzuć motocyklem
+          do środka, a potem gazem trzymaj tył w poślizgu. Zamknięcie gazu w
+          środku ślizgu prostuje motocykl i wynosi na bandę.
+        </p>
+      </div>
+    </div>
+
+    <!-- =================== HUD =================== -->
+    <div id="hud" hidden>
+      <div id="swiatla" class="swiatla">
+        <i data-l="0"></i><i data-l="1"></i>
+      </div>
+
+      <div class="lewyGora">
+        <div id="pozycja" class="panel poz">
+          <div class="duza"><b id="miejsce">1</b><em>/4</em></div>
+          <div class="mala">pozycja</div>
+        </div>
+        <div id="okr" class="panel okr">
+          <div class="duza"><b id="okrNr">1</b><em>/4</em></div>
+          <div class="mala">okrążenie</div>
         </div>
       </div>
-      <div class="grupa">
-        <h3>Stan toru</h3>
-        <div class="opcje" id="tor">
-          <button class="opcja" data-v="0">Świeżo równany<small>równa przyczepność</small></button>
-          <button class="opcja" data-v="1" aria-pressed="true">Po kilku biegach<small>dołek i kożuch</small></button>
-          <button class="opcja" data-v="2">Wyjeżdżony<small>ślisko przy krawężniku</small></button>
+
+      <div id="tabela" class="panel tabela"></div>
+      <div id="telemetria" class="panel telem" hidden></div>
+      <button id="dokonczBtn" class="dokoncz" hidden>Dokończ bieg</button>
+      <div id="tablicaMecz" class="tablicaMecz" hidden>
+        <div class="tmZesp"><span>GOSPODARZE</span><b id="tmGosp">0</b></div>
+        <div class="tmSrodek"><em id="tmBieg">BIEG 1</em></div>
+        <div class="tmZesp"><span>GOŚCIE</span><b id="tmGosc">0</b></div>
+      </div>
+
+      <div id="komunikat" class="komunikat"></div>
+
+      <div id="przyrzady">
+        <svg id="obrotomierz" viewBox="0 0 200 200" aria-hidden="true"></svg>
+        <div class="predkosc"><b id="kmh">0</b><span>km/h</span></div>
+        <div class="slizg">
+          <div class="slizgOs"><i id="slizgWsk"></i><u></u></div>
+          <span>ślizg</span>
         </div>
       </div>
-      <div class="grupa">
-        <h3>Dystans</h3>
-        <div class="opcje" id="okrazenia">
-          <button class="opcja" data-v="2">2 okrążenia<small>trening</small></button>
-          <button class="opcja" data-v="4" aria-pressed="true">4 okrążenia<small>regulaminowy bieg</small></button>
-          <button class="opcja" data-v="6">6 okrążeń<small>wytrzymałość</small></button>
+
+      <div id="czasy" class="panel czasy"></div>
+      <div id="pauza" class="zaslona" hidden>
+        <div>
+          <h2>Pauza</h2>
+          <p>
+            <kbd>P</kbd> wracasz do biegu &nbsp;·&nbsp; <kbd>R</kbd> powtórka
+            &nbsp;·&nbsp; <kbd>Esc</kbd> menu
+          </p>
+        </div>
+      </div>
+      <div id="dotyk" class="dotyk" hidden>
+        <button data-k="lewo">◀</button><button data-k="prawo">▶</button>
+        <button data-k="sprzeglo">SPRZ</button><button data-k="gaz">GAZ</button>
+      </div>
+    </div>
+
+    <!-- =================== TRYB MECZU =================== -->
+    <div id="wyborDruzyn" class="ekran" hidden>
+      <div class="ekWrap">
+        <h2>Mecz ligowy</h2>
+        <p class="ekPod">
+          Wybierz gospodarza i gościa. Długość toru gospodarza ustawia geometrię
+          wyścigu.
+        </p>
+        <div class="dwieKol">
+          <div>
+            <div class="kolNag">Gospodarz</div>
+            <div id="kolGosp" class="kolKlubow"></div>
+          </div>
+          <div>
+            <div class="kolNag">Gość</div>
+            <div id="kolGosc" class="kolKlubow"></div>
+          </div>
+        </div>
+        <div class="kolNag" style="margin-top: 14px">
+          W której drużynie jedziesz?
+        </div>
+        <div class="opcje stronaWyb">
+          <button id="stronaGosp" class="opcja" aria-pressed="true">
+            U gospodarza
+          </button>
+          <button id="stronaGosc" class="opcja">U gościa</button>
+        </div>
+        <p id="infoMecz" class="infoMecz"></p>
+        <div class="przyciski">
+          <button id="dalejDruzyny" class="opcja gl">Do tabeli biegowej</button>
+          <button id="wrocDruzyny" class="opcja">Wróć</button>
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="start">
-    <button id="jedziemy">Pod taśmę</button>
-    <button id="trening">Trening</button>
-    <button id="meczBtn">Mecz ligowy</button>
-    <div class="sterowanie">
-      <kbd>W</kbd> lub <kbd>↑</kbd> gaz &nbsp; <kbd>S</kbd> zamknięcie gazu &nbsp;
-      <kbd>A</kbd><kbd>D</kbd> lub <kbd>←</kbd><kbd>→</kbd> kierownica &nbsp;
-      <kbd>Spacja</kbd> lub <kbd>Q</kbd> sprzęgło<br>
-      <kbd>Shift</kbd> ciężar do tyłu &nbsp; <kbd>C</kbd> kamera &nbsp; <kbd>R</kbd> powtórka &nbsp;
-      <kbd>P</kbd> pauza &nbsp; <kbd>M</kbd> dźwięk &nbsp; <kbd>[</kbd><kbd>]</kbd> jasność<br>
-      <span style="color:#7f8f9d">Kierownica narasta stopniowo — przytrzymaj klawisz, żeby dołożyć skrętu i przechyłu.
-      Jeśli klawiatura gubi kombinacje, użyj <kbd>↑</kbd> + <kbd>A</kbd><kbd>D</kbd> + <kbd>Q</kbd>.</span>
+    <div id="ekranProgramu" class="ekran" hidden>
+      <div class="ekWrap szeroki">
+        <h2 id="tytulProgramu" class="tytulMeczu"></h2>
+        <div class="opcje przelacznikWidoku">
+          <button id="widokProgram" class="opcja" aria-pressed="true">
+            Tabela biegowa
+          </button>
+          <button id="widokKarta" class="opcja">Karta punktów</button>
+        </div>
+        <div id="listaProgramu" class="program"></div>
+        <div id="kartaProgramu" class="kartaProg" hidden></div>
+        <div id="paskDecyzji" class="paskDecyzji"></div>
+        <div class="przyciski">
+          <span id="akcjaBiegu"></span>
+          <button id="programMenu" class="opcja">Przerwij mecz</button>
+        </div>
+        <div id="symLicze" class="symLicze" hidden>Rozgrywanie biegu…</div>
+      </div>
     </div>
-  </div>
 
-  <p class="stopka"><b style="color:#cfdae4">Trening</b> — sam na torze, bez limitu okrążeń.
-     <kbd>T</kbd> włącza telemetrię, <kbd>R</kbd> wraca na linię bez kasowania stanu toru,
-     <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> przełączają poziom w locie.<br>
-     Start: trzymaj <b>Spację</b> (sprzęgło wyciśnięte) i kręć silnik gazem. Gdy taśma pójdzie w górę —
-     puść sprzęgło. Ruszysz przed taśmą, sędzia zapali czerwone.<br>
-     Łuk pokonuje się ślizgiem: przymknij gaz na wejściu, rzuć motocyklem do środka, a potem gazem trzymaj tył
-     w poślizgu. Zamknięcie gazu w środku ślizgu prostuje motocykl i wynosi na bandę.</p>
- </div>
-</div>
-
-<!-- =================== HUD =================== -->
-<div id="hud" hidden>
-  <div id="swiatla" class="swiatla"><i data-l="0"></i><i data-l="1"></i></div>
-
-  <div class="lewyGora">
-    <div id="pozycja" class="panel poz">
-      <div class="duza"><b id="miejsce">1</b><em>/4</em></div>
-      <div class="mala">pozycja</div>
+    <div id="planszaBiegu" class="ekran" hidden>
+      <div class="ekWrap">
+        <h2 id="pbTytul"></h2>
+        <p id="pbWynik" class="tablicaWyniku"></p>
+        <p class="ekPod">
+          Wybierz, którym ze swoich zawodników pojedziesz. Drugiego poprowadzi
+          bot.
+        </p>
+        <div id="pbLista" class="pbLista"></div>
+        <div class="przyciski" id="pbAkcje"></div>
+      </div>
     </div>
-    <div id="okr" class="panel okr">
-      <div class="duza"><b id="okrNr">1</b><em>/4</em></div>
-      <div class="mala">okrążenie</div>
+
+    <div id="wynikBiegu" class="ekran" hidden>
+      <div class="ekWrap">
+        <h2 id="wbTytul"></h2>
+        <table id="wbLista" class="wbTab"></table>
+        <p id="wbWynik" class="tablicaWyniku"></p>
+        <div class="przyciski">
+          <button id="wbDalej" class="opcja gl">Dalej</button>
+        </div>
+      </div>
     </div>
-  </div>
 
-  <div id="tabela" class="panel tabela"></div>
-  <div id="telemetria" class="panel telem" hidden></div>
-  <button id="dokonczBtn" class="dokoncz" hidden>Dokończ bieg</button>
-  <div id="tablicaMecz" class="tablicaMecz" hidden>
-    <div class="tmZesp"><span>GOSPODARZE</span><b id="tmGosp">0</b></div>
-    <div class="tmSrodek"><em id="tmBieg">BIEG 1</em></div>
-    <div class="tmZesp"><span>GOŚCIE</span><b id="tmGosc">0</b></div>
-  </div>
-
-  <div id="komunikat" class="komunikat"></div>
-
-  <div id="przyrzady">
-    <svg id="obrotomierz" viewBox="0 0 200 200" aria-hidden="true"></svg>
-    <div class="predkosc"><b id="kmh">0</b><span>km/h</span></div>
-    <div class="slizg"><div class="slizgOs"><i id="slizgWsk"></i><u></u></div><span>ślizg</span></div>
-  </div>
-
-  <div id="czasy" class="panel czasy"></div>
-  <div id="pauza" class="zaslona" hidden><div><h2>Pauza</h2><p><kbd>P</kbd> wracasz do biegu &nbsp;·&nbsp; <kbd>R</kbd> powtórka &nbsp;·&nbsp; <kbd>Esc</kbd> menu</p></div></div>
-  <div id="dotyk" class="dotyk" hidden>
-    <button data-k="lewo">◀</button><button data-k="prawo">▶</button>
-    <button data-k="sprzeglo">SPRZ</button><button data-k="gaz">GAZ</button>
-  </div>
-</div>
-
-<!-- =================== TRYB MECZU =================== -->
-<div id="wyborDruzyn" class="ekran" hidden><div class="ekWrap">
-  <h2>Mecz ligowy</h2>
-  <p class="ekPod">Wybierz gospodarza i gościa. Długość toru gospodarza ustawia geometrię wyścigu.</p>
-  <div class="dwieKol">
-    <div><div class="kolNag">Gospodarz</div><div id="kolGosp" class="kolKlubow"></div></div>
-    <div><div class="kolNag">Gość</div><div id="kolGosc" class="kolKlubow"></div></div>
-  </div>
-  <div class="kolNag" style="margin-top:14px">W której drużynie jedziesz?</div>
-  <div class="opcje stronaWyb">
-    <button id="stronaGosp" class="opcja" aria-pressed="true">U gospodarza</button>
-    <button id="stronaGosc" class="opcja">U gościa</button>
-  </div>
-  <p id="infoMecz" class="infoMecz"></p>
-  <div class="przyciski"><button id="dalejDruzyny" class="opcja gl">Do tabeli biegowej</button>
-    <button id="wrocDruzyny" class="opcja">Wróć</button></div>
-</div></div>
-
-<div id="ekranProgramu" class="ekran" hidden><div class="ekWrap szeroki">
-  <h2 id="tytulProgramu" class="tytulMeczu"></h2>
-  <div class="opcje przelacznikWidoku">
-    <button id="widokProgram" class="opcja" aria-pressed="true">Tabela biegowa</button>
-    <button id="widokKarta" class="opcja">Karta punktów</button>
-  </div>
-  <div id="listaProgramu" class="program"></div>
-  <div id="kartaProgramu" class="kartaProg" hidden></div>
-  <div id="paskDecyzji" class="paskDecyzji"></div>
-  <div class="przyciski"><span id="akcjaBiegu"></span>
-    <button id="programMenu" class="opcja">Przerwij mecz</button></div>
-  <div id="symLicze" class="symLicze" hidden>Rozgrywanie biegu…</div>
-</div></div>
-
-<div id="planszaBiegu" class="ekran" hidden><div class="ekWrap">
-  <h2 id="pbTytul"></h2>
-  <p id="pbWynik" class="tablicaWyniku"></p>
-  <p class="ekPod">Wybierz, którym ze swoich zawodników pojedziesz. Drugiego poprowadzi bot.</p>
-  <div id="pbLista" class="pbLista"></div>
-  <div class="przyciski" id="pbAkcje"></div>
-</div></div>
-
-<div id="wynikBiegu" class="ekran" hidden><div class="ekWrap">
-  <h2 id="wbTytul"></h2>
-  <table id="wbLista" class="wbTab"></table>
-  <p id="wbWynik" class="tablicaWyniku"></p>
-  <div class="przyciski"><button id="wbDalej" class="opcja gl">Dalej</button></div>
-</div></div>
-
-<div id="decyzjaTrenera" class="ekran" hidden><div class="ekWrap">
-  <h2 id="dtTytul"></h2>
-  <p id="dtOpis" class="ekPod"></p>
-  <div id="dtOpcje" class="dtOpcje"></div>
-</div></div>
-
-<div id="kartaMeczu" class="ekran" hidden><div class="ekWrap szeroki">
-  <h2 id="kmTytul" class="tytulMeczu"></h2>
-  <div class="dwieKol">
-    <table id="kmGosp" class="kmTab"></table>
-    <table id="kmGosc" class="kmTab"></table>
-  </div>
-  <p id="kmOpis" class="ekPod"></p>
-  <div class="przyciski"><button id="kmMenu" class="opcja gl">Do menu</button></div>
-</div></div>
-
-<!-- =================== WYNIKI =================== -->
-<div id="wyniki" class="zaslona" hidden>
-  <div class="karta">
-    <h2 id="wynikTytul">Wynik biegu</h2>
-    <table id="wynikTabela"></table>
-    <p id="wynikOpis" class="opisWyniku"></p>
-    <div class="przyciski">
-      <button id="powtorz" class="opcja gl">Powtórz bieg</button>
-      <button id="doMenu" class="opcja">Zmień zawodnika</button>
+    <div id="decyzjaTrenera" class="ekran" hidden>
+      <div class="ekWrap">
+        <h2 id="dtTytul"></h2>
+        <p id="dtOpis" class="ekPod"></p>
+        <div id="dtOpcje" class="dtOpcje"></div>
+      </div>
     </div>
-  </div>
-</div>
 
-<style>
-/* ---------- HUD ---------- */
-#hud{position:fixed;inset:0;z-index:20;pointer-events:none;font-family:var(--body)}
-/* --sk ustawia JS z rozmiaru okna; każdy panel skaluje się względem swojego rogu */
-.lewyGora{position:absolute;top:14px;left:14px;display:flex;gap:8px;
-  transform:scale(var(--sk,1));transform-origin:top left}
-#hud[hidden]{display:none}
-.panel{position:absolute;background:rgba(9,14,19,.62);border:1px solid rgba(120,145,165,.22);
-  backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
-.duza{font-family:var(--disp);font-weight:700;line-height:.9;display:flex;align-items:baseline;gap:2px}
-.duza b{font-size:44px}
-.duza em{font-style:normal;font-size:19px;color:#7f8f9d}
-.mala{font-family:var(--disp);font-size:12px;letter-spacing:.18em;color:#8496a4;margin-top:3px}
-.poz,.okr{position:static;padding:9px 15px 8px}
+    <div id="kartaMeczu" class="ekran" hidden>
+      <div class="ekWrap szeroki">
+        <h2 id="kmTytul" class="tytulMeczu"></h2>
+        <div class="dwieKol">
+          <table id="kmGosp" class="kmTab"></table>
+          <table id="kmGosc" class="kmTab"></table>
+        </div>
+        <p id="kmOpis" class="ekPod"></p>
+        <div class="przyciski">
+          <button id="kmMenu" class="opcja gl">Do menu</button>
+        </div>
+      </div>
+    </div>
 
-.tabela{top:14px;right:14px;min-width:214px;padding:7px;
-  transform:scale(var(--sk,1));transform-origin:top right}
-.tabela .w{display:flex;align-items:center;gap:8px;padding:4px 6px;font-size:13px;border-radius:2px}
-.tabela .w.ja{background:rgba(255,231,188,.14)}
-.tabela .w s{width:15px;text-decoration:none;font-family:var(--disp);font-weight:700;color:#8496a4;font-size:14px}
-.tabela .w i{width:13px;height:13px;flex:none;border-radius:2px;border:1px solid rgba(0,0,0,.45)}
-.tabela .w u{flex:1;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.tabela .w em{font-style:normal;font-size:11.5px;color:#8496a4;font-variant-numeric:tabular-nums}
+    <!-- =================== WYNIKI =================== -->
+    <div id="wyniki" class="zaslona" hidden>
+      <div class="karta">
+        <h2 id="wynikTytul">Wynik biegu</h2>
+        <table id="wynikTabela"></table>
+        <p id="wynikOpis" class="opisWyniku"></p>
+        <div class="przyciski">
+          <button id="powtorz" class="opcja gl">Powtórz bieg</button>
+          <button id="doMenu" class="opcja">Zmień zawodnika</button>
+        </div>
+      </div>
+    </div>
 
-.dokoncz{position:absolute;left:50%;top:44%;transform:translateX(-50%) scale(var(--sk,1));
-  transform-origin:top center;font-family:var(--disp);font-size:19px;font-weight:600;letter-spacing:.05em;
-  padding:12px 26px;background:rgba(255,231,188,.94);color:#14181d;border:0;cursor:pointer;
-  pointer-events:auto;box-shadow:0 6px 22px rgba(0,0,0,.5)}
-.dokoncz:hover{background:#fff}
-.tablicaMecz{position:absolute;left:50%;bottom:14px;display:flex;align-items:center;gap:16px;
-  padding:8px 18px;background:rgba(8,10,13,.86);border:1px solid rgba(120,145,165,.28);border-radius:4px;
-  transform:translateX(-50%) scale(var(--sk,1));transform-origin:bottom center}
-.tmZesp{text-align:center}
-.tmZesp span{display:block;font:600 10px var(--body);letter-spacing:.16em;color:#8fa0ae}
-.tmZesp b{display:block;font-family:var(--disp);font-size:34px;font-weight:700;line-height:1;
-  color:#ff2e2e;text-shadow:0 0 12px rgba(255,46,46,.55)}
-.tmSrodek em{font-style:normal;font:600 11px var(--disp);letter-spacing:.18em;color:#7f8f9d}
-.telem{top:14px;right:14px;padding:9px 12px;min-width:228px;font-size:12px;line-height:1.5;
-  font-variant-numeric:tabular-nums;color:#9fb0bf;transform:scale(var(--sk,1));transform-origin:top right}
-.telem h4{font-family:var(--disp);font-size:12.5px;letter-spacing:.16em;color:#7f8f9d;font-weight:600;margin-bottom:6px}
-.telem .w{display:flex;justify-content:space-between;gap:14px}
-.telem .w b{color:#e6edf3;font-weight:600}
-.telem .w.ost b{color:#f2c500}
-.telem .w.zle b{color:#e8332a}
-.telem hr{border:0;border-top:1px solid rgba(120,145,165,.18);margin:6px 0}
-#trening{font-family:var(--disp);font-size:22px;font-weight:600;letter-spacing:.03em;padding:15px 32px;
-  background:#1c2a36;color:#cfdae4;border:1px solid #2f4351;cursor:pointer;transition:.14s}
-#trening:hover{background:#26374a}
-.czasy{bottom:14px;right:14px;padding:8px 12px;font-size:12.5px;color:#a9b8c4;line-height:1.75;
-  font-variant-numeric:tabular-nums;min-width:150px;transform:scale(var(--sk,1));transform-origin:bottom right}
-.czasy b{color:#ffe7bc;font-weight:600}
-.czasy .naj{color:#7ee08e}
+    <style>
+      /* ---------- HUD ---------- */
+      #hud {
+        position: fixed;
+        inset: 0;
+        z-index: 20;
+        pointer-events: none;
+        font-family: var(--body);
+      }
+      /* --sk ustawia JS z rozmiaru okna; każdy panel skaluje się względem swojego rogu */
+      .lewyGora {
+        position: absolute;
+        top: 14px;
+        left: 14px;
+        display: flex;
+        gap: 8px;
+        transform: scale(var(--sk, 1));
+        transform-origin: top left;
+      }
+      #hud[hidden] {
+        display: none;
+      }
+      .panel {
+        position: absolute;
+        background: rgba(9, 14, 19, 0.62);
+        border: 1px solid rgba(120, 145, 165, 0.22);
+        backdrop-filter: blur(7px);
+        -webkit-backdrop-filter: blur(7px);
+      }
+      .duza {
+        font-family: var(--disp);
+        font-weight: 700;
+        line-height: 0.9;
+        display: flex;
+        align-items: baseline;
+        gap: 2px;
+      }
+      .duza b {
+        font-size: 44px;
+      }
+      .duza em {
+        font-style: normal;
+        font-size: 19px;
+        color: #7f8f9d;
+      }
+      .mala {
+        font-family: var(--disp);
+        font-size: 12px;
+        letter-spacing: 0.18em;
+        color: #8496a4;
+        margin-top: 3px;
+      }
+      .poz,
+      .okr {
+        position: static;
+        padding: 9px 15px 8px;
+      }
 
-#przyrzady{position:absolute;left:14px;bottom:14px;width:172px;height:172px;
-  transform:scale(var(--sk,1));transform-origin:bottom left}
-#obrotomierz{position:absolute;inset:0;width:100%;height:100%}
-.predkosc{position:absolute;left:0;right:0;top:52%;text-align:center;font-family:var(--disp);line-height:.95}
-.predkosc b{display:block;font-size:46px;font-weight:700}
-.predkosc span{font-size:12px;letter-spacing:.16em;color:#8496a4}
-.slizg{position:absolute;left:16px;right:16px;bottom:4px;text-align:center}
-.slizgOs{position:relative;height:6px;background:rgba(9,14,19,.66);border:1px solid rgba(120,145,165,.24)}
-.slizgOs u{position:absolute;left:50%;top:-2px;width:1px;height:10px;background:#5b6b78}
-.slizgOs i{position:absolute;top:0;bottom:0;width:4px;background:#7ee08e;transform:translateX(-50%);left:50%;transition:background .12s}
-.slizg span{font-family:var(--disp);font-size:10.5px;letter-spacing:.2em;color:#7f8f9d}
+      .tabela {
+        top: 14px;
+        right: 14px;
+        min-width: 214px;
+        padding: 7px;
+        transform: scale(var(--sk, 1));
+        transform-origin: top right;
+      }
+      .tabela .w {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 6px;
+        font-size: 13px;
+        border-radius: 2px;
+      }
+      .tabela .w.ja {
+        background: rgba(255, 231, 188, 0.14);
+      }
+      .tabela .w s {
+        width: 15px;
+        text-decoration: none;
+        font-family: var(--disp);
+        font-weight: 700;
+        color: #8496a4;
+        font-size: 14px;
+      }
+      .tabela .w i {
+        width: 13px;
+        height: 13px;
+        flex: none;
+        border-radius: 2px;
+        border: 1px solid rgba(0, 0, 0, 0.45);
+      }
+      .tabela .w u {
+        flex: 1;
+        text-decoration: none;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .tabela .w em {
+        font-style: normal;
+        font-size: 11.5px;
+        color: #8496a4;
+        font-variant-numeric: tabular-nums;
+      }
 
-.swiatla{position:absolute;top:16px;left:50%;transform:translateX(-50%) scale(var(--sk,1));transform-origin:top center;display:flex;gap:9px;
-  padding:9px;background:rgba(9,14,19,.6);border:1px solid rgba(120,145,165,.22);border-radius:3px;opacity:0;transition:opacity .3s}
-.swiatla.on{opacity:1}
-.swiatla i{width:24px;height:24px;border-radius:50%;background:#1a232c;box-shadow:inset 0 0 6px #000}
-.swiatla i.zielone{background:#22d24e;box-shadow:0 0 22px #22d24e,inset 0 0 6px rgba(0,0,0,.4)}
-.swiatla i.czerwone{background:#e8332a;box-shadow:0 0 22px #e8332a,inset 0 0 6px rgba(0,0,0,.4)}
+      .dokoncz {
+        position: absolute;
+        left: 50%;
+        top: 44%;
+        transform: translateX(-50%) scale(var(--sk, 1));
+        transform-origin: top center;
+        font-family: var(--disp);
+        font-size: 19px;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        padding: 12px 26px;
+        background: rgba(255, 231, 188, 0.94);
+        color: #14181d;
+        border: 0;
+        cursor: pointer;
+        pointer-events: auto;
+        box-shadow: 0 6px 22px rgba(0, 0, 0, 0.5);
+      }
+      .dokoncz:hover {
+        background: #fff;
+      }
+      .tablicaMecz {
+        position: absolute;
+        left: 50%;
+        bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 8px 18px;
+        background: rgba(8, 10, 13, 0.86);
+        border: 1px solid rgba(120, 145, 165, 0.28);
+        border-radius: 4px;
+        transform: translateX(-50%) scale(var(--sk, 1));
+        transform-origin: bottom center;
+      }
+      .tmZesp {
+        text-align: center;
+      }
+      .tmZesp span {
+        display: block;
+        font: 600 10px var(--body);
+        letter-spacing: 0.16em;
+        color: #8fa0ae;
+      }
+      .tmZesp b {
+        display: block;
+        font-family: var(--disp);
+        font-size: 34px;
+        font-weight: 700;
+        line-height: 1;
+        color: #ff2e2e;
+        text-shadow: 0 0 12px rgba(255, 46, 46, 0.55);
+      }
+      .tmSrodek em {
+        font-style: normal;
+        font: 600 11px var(--disp);
+        letter-spacing: 0.18em;
+        color: #7f8f9d;
+      }
+      .telem {
+        top: 14px;
+        right: 14px;
+        padding: 9px 12px;
+        min-width: 228px;
+        font-size: 12px;
+        line-height: 1.5;
+        font-variant-numeric: tabular-nums;
+        color: #9fb0bf;
+        transform: scale(var(--sk, 1));
+        transform-origin: top right;
+      }
+      .telem h4 {
+        font-family: var(--disp);
+        font-size: 12.5px;
+        letter-spacing: 0.16em;
+        color: #7f8f9d;
+        font-weight: 600;
+        margin-bottom: 6px;
+      }
+      .telem .w {
+        display: flex;
+        justify-content: space-between;
+        gap: 14px;
+      }
+      .telem .w b {
+        color: #e6edf3;
+        font-weight: 600;
+      }
+      .telem .w.ost b {
+        color: #f2c500;
+      }
+      .telem .w.zle b {
+        color: #e8332a;
+      }
+      .telem hr {
+        border: 0;
+        border-top: 1px solid rgba(120, 145, 165, 0.18);
+        margin: 6px 0;
+      }
+      #trening {
+        font-family: var(--disp);
+        font-size: 22px;
+        font-weight: 600;
+        letter-spacing: 0.03em;
+        padding: 15px 32px;
+        background: #1c2a36;
+        color: #cfdae4;
+        border: 1px solid #2f4351;
+        cursor: pointer;
+        transition: 0.14s;
+      }
+      #trening:hover {
+        background: #26374a;
+      }
+      .czasy {
+        bottom: 14px;
+        right: 14px;
+        padding: 8px 12px;
+        font-size: 12.5px;
+        color: #a9b8c4;
+        line-height: 1.75;
+        font-variant-numeric: tabular-nums;
+        min-width: 150px;
+        transform: scale(var(--sk, 1));
+        transform-origin: bottom right;
+      }
+      .czasy b {
+        color: #ffe7bc;
+        font-weight: 600;
+      }
+      .czasy .naj {
+        color: #7ee08e;
+      }
 
-.komunikat{position:absolute;top:34%;left:0;right:0;text-align:center;font-family:var(--disp);
-  font-size:clamp(30px,6.6vw,64px);font-weight:700;letter-spacing:.02em;text-shadow:0 4px 26px rgba(0,0,0,.85);
-  opacity:0;transition:opacity .22s}
-.komunikat.on{opacity:1}
-.komunikat small{display:block;font-size:.34em;font-weight:500;letter-spacing:.1em;color:#c6d3dd;margin-top:.35em}
+      #przyrzady {
+        position: absolute;
+        left: 14px;
+        bottom: 14px;
+        width: 172px;
+        height: 172px;
+        transform: scale(var(--sk, 1));
+        transform-origin: bottom left;
+      }
+      #obrotomierz {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+      .predkosc {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 52%;
+        text-align: center;
+        font-family: var(--disp);
+        line-height: 0.95;
+      }
+      .predkosc b {
+        display: block;
+        font-size: 46px;
+        font-weight: 700;
+      }
+      .predkosc span {
+        font-size: 12px;
+        letter-spacing: 0.16em;
+        color: #8496a4;
+      }
+      .slizg {
+        position: absolute;
+        left: 16px;
+        right: 16px;
+        bottom: 4px;
+        text-align: center;
+      }
+      .slizgOs {
+        position: relative;
+        height: 6px;
+        background: rgba(9, 14, 19, 0.66);
+        border: 1px solid rgba(120, 145, 165, 0.24);
+      }
+      .slizgOs u {
+        position: absolute;
+        left: 50%;
+        top: -2px;
+        width: 1px;
+        height: 10px;
+        background: #5b6b78;
+      }
+      .slizgOs i {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: #7ee08e;
+        transform: translateX(-50%);
+        left: 50%;
+        transition: background 0.12s;
+      }
+      .slizg span {
+        font-family: var(--disp);
+        font-size: 10.5px;
+        letter-spacing: 0.2em;
+        color: #7f8f9d;
+      }
 
-.dotyk{position:absolute;inset:auto 0 0 0;height:132px;pointer-events:none}
-.dotyk button{position:absolute;bottom:14px;width:76px;height:76px;border-radius:50%;pointer-events:auto;
-  background:rgba(20,30,40,.62);border:1px solid rgba(140,165,185,.3);color:#dfe8ef;font:700 14px var(--disp)}
-.dotyk button:active{background:rgba(255,231,188,.34)}
-.dotyk [data-k=lewo]{left:14px}.dotyk [data-k=prawo]{left:100px}
-.dotyk [data-k=sprzeglo]{right:100px}.dotyk [data-k=gaz]{right:14px;background:rgba(31,190,74,.42)}
+      .swiatla {
+        position: absolute;
+        top: 16px;
+        left: 50%;
+        transform: translateX(-50%) scale(var(--sk, 1));
+        transform-origin: top center;
+        display: flex;
+        gap: 9px;
+        padding: 9px;
+        background: rgba(9, 14, 19, 0.6);
+        border: 1px solid rgba(120, 145, 165, 0.22);
+        border-radius: 3px;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      .swiatla.on {
+        opacity: 1;
+      }
+      .swiatla i {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #1a232c;
+        box-shadow: inset 0 0 6px #000;
+      }
+      .swiatla i.zielone {
+        background: #22d24e;
+        box-shadow:
+          0 0 22px #22d24e,
+          inset 0 0 6px rgba(0, 0, 0, 0.4);
+      }
+      .swiatla i.czerwone {
+        background: #e8332a;
+        box-shadow:
+          0 0 22px #e8332a,
+          inset 0 0 6px rgba(0, 0, 0, 0.4);
+      }
 
+      .komunikat {
+        position: absolute;
+        top: 34%;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-family: var(--disp);
+        font-size: clamp(30px, 6.6vw, 64px);
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        text-shadow: 0 4px 26px rgba(0, 0, 0, 0.85);
+        opacity: 0;
+        transition: opacity 0.22s;
+      }
+      .komunikat.on {
+        opacity: 1;
+      }
+      .komunikat small {
+        display: block;
+        font-size: 0.34em;
+        font-weight: 500;
+        letter-spacing: 0.1em;
+        color: #c6d3dd;
+        margin-top: 0.35em;
+      }
 
-/* ---------- TRYB MECZU ---------- */
-.ekran{position:fixed;inset:0;z-index:45;display:grid;place-items:center;overflow:hidden;
-  background:radial-gradient(900px 480px at 50% -10%,rgba(255,231,188,.13),transparent 60%),
-             linear-gradient(#080c11,#0d141c 55%,#131a20)}
-.ekWrap{width:min(940px,96vw);max-height:96vh;overflow:auto;padding:clamp(14px,3vh,30px) clamp(14px,3vw,30px)}
-.ekWrap.szeroki{width:min(1120px,97vw)}
-.ekran h2{font-family:var(--disp);font-size:clamp(26px,4.4vw,40px);font-weight:700;margin-bottom:6px}
-.ekPod{font-size:13.5px;color:#9fb0bf;line-height:1.55;margin-bottom:14px}
-.dwieKol{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-@media(max-width:700px){.dwieKol{grid-template-columns:1fr}}
-.kolNag{font-family:var(--disp);font-size:17px;color:#93a5b4;margin-bottom:6px;letter-spacing:.1em}
-.kolKlubow{max-height:44vh;overflow:auto;border:1px solid #22303d;background:#0f1720}
-.ligaNag{font:600 11px var(--body);letter-spacing:.16em;color:#7f8f9d;padding:8px 10px 4px;background:#101922}
-.klub{display:flex;align-items:center;gap:9px;width:100%;padding:7px 10px;background:none;border:0;
-  border-bottom:1px solid #1b2733;color:#cfdae4;font:inherit;font-size:13px;cursor:pointer;text-align:left}
-.klub:hover{background:#16222d}
-.klub.wybrany{background:linear-gradient(90deg,var(--b1) 0 4px,#1b2b3a 4px)}
-.klub u{flex:1;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.klub em{font-style:normal;font-size:11px;color:#7f8f9d}
-.herb{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:20px;
-  border-radius:3px;background:var(--b1);color:#0d1117;font:700 11px var(--disp);letter-spacing:.06em;
-  border:2px solid var(--b2);margin:0 4px}
-.infoMecz{font-size:13px;color:#b9c6d1;line-height:1.6;margin:12px 0}
-.ostrz{color:#f2c500}
-.stronaWyb{max-width:420px;margin-bottom:12px}
-.listaZaw{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:9px}
-.zawKarta{background:#101922;border:1px solid #22303d;padding:9px;text-align:left;color:#cfdae4;
-  font:inherit;cursor:pointer}
-.zawKarta:hover{background:#16222d}
-.zawKarta.wybrany{border-color:var(--jupiter);background:#16222d}
-.zawNr{font-family:var(--disp);font-size:22px;font-weight:700;color:#7f8f9d;float:right}
-.zawGl b{display:block;font-size:14px}
-.zawGl em{font-style:normal;font-size:11px;color:#8fa0ae}
-.zawStat{margin:7px 0 4px;font-size:10px;color:#7f8f9d}
-.zawStat span{display:inline-block;width:32px}
-.zawStat i{display:inline-block;height:4px;background:var(--jupiter);vertical-align:middle;margin-bottom:1px}
-.zawStarty{font-size:11px;color:#8fa0ae}
-.tytulMeczu{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;font-size:clamp(18px,3vw,28px)}
-.tytulMeczu s{text-decoration:none;color:var(--jupiter)}
-.przelacznikWidoku{max-width:400px;margin-bottom:9px}
-.kartaProg{max-height:56vh;overflow:auto;display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media(max-width:820px){.kartaProg{grid-template-columns:1fr}}
-.kpTab{width:100%;border-collapse:collapse;font-size:11.5px;font-variant-numeric:tabular-nums}
-.kpTab caption{text-align:left;font-family:var(--disp);font-size:15px;padding:4px 0;color:#cfdae4}
-.kpTab th{background:#16212c;color:#8fa0ae;font:600 10px var(--body);letter-spacing:.06em;
-  padding:4px 2px;border-bottom:1px solid #2a3947}
-.kpTab td{padding:4px 2px;border-bottom:1px solid #1a2531;text-align:center;color:#cfdae4}
-.kpTab td.nz{text-align:left;padding-left:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:118px}
-.kpTab td.nr{width:20px;color:#7f8f9d;font-family:var(--disp);font-weight:700}
-.kpTab td.sm{font-family:var(--disp);font-weight:700;font-size:14px;color:#ffe7bc}
-.kpTab td.nom{background:#141d27}
-.kpTab tr.jaDr td{background:rgba(255,231,188,.07)}
-.kpTab tr.jaDr td.nom{background:rgba(255,231,188,.12)}
-.kpU{color:#e8332a;font-weight:700}
-.program{border:1px solid #22303d;background:#0f1720;max-height:56vh;overflow:auto}
-.wBieg{display:flex;align-items:center;gap:5px;padding:5px 8px;border-bottom:1px solid #1a2531;font-size:12px}
-.wBieg s{text-decoration:none;font-family:var(--disp);font-weight:700;width:22px;color:#7f8f9d}
-.wBieg.teraz{background:#1a2937;box-shadow:inset 3px 0 0 var(--jupiter)}
-.wBieg.zrobiony{opacity:.62}
-.wBieg.mojBieg s{color:var(--jupiter)}
-.wZaw{display:inline-flex;align-items:center;gap:3px;padding:1px 6px;background:#16212c;border-radius:2px;margin-right:3px}
-.wZaw.ja{background:rgba(255,231,188,.16)}
-.wZaw i{width:9px;height:9px;border-radius:2px;border:1px solid rgba(0,0,0,.5)}
-.wZaw u{text-decoration:none;max-width:96px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.wZaw b{color:var(--jupiter)}
-.doUstal{font-style:normal;color:#6a7a88;font-size:11.5px}
-.paskDecyzji{margin-top:10px}
-.symLicze{margin-top:10px;color:#9fb0bf;font-size:13px}
-.pbLista{display:grid;gap:7px;margin:12px 0}
-.pbZaw{display:flex;align-items:center;gap:11px;background:#101922;border:1px solid #22303d;padding:9px 11px}
-.pbZaw.ja{border-color:var(--jupiter)}
-.pbKask{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;
-  font:700 15px var(--disp);color:rgba(0,0,0,.65);border:2px solid rgba(0,0,0,.35)}
-.pbOpis b{display:block;font-size:15px}
-.pbOpis em{font-style:normal;font-size:11.5px;color:#8fa0ae}
-.tablicaWyniku{font-family:var(--disp);font-size:22px;text-align:center;color:#9fb0bf;margin:10px 0}
-.tablicaWyniku b{color:#e6edf3;font-size:28px}
-.wbTab{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
-.wbTab td{padding:8px 6px;border-bottom:1px solid #1c2833;font-size:14px}
-.wbTab tr.ja td{background:rgba(255,231,188,.1)}
-.wbTab .m{font-family:var(--disp);font-weight:700;width:26px;color:#8fa0ae}
-.wbTab .c{width:14px}.wbTab .c i{display:block;width:13px;height:13px;border-radius:2px}
-.wbTab .k{width:44px;color:#8fa0ae;font-size:12px}
-.wbTab .p{text-align:right;width:44px;font-family:var(--disp);font-weight:700;font-size:19px}
-.wbTab sup{color:#7ee08e;font-size:11px}
-.upadekU{color:#e8332a}
-.dtOpcje{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
-.dtOpcja{text-align:left;padding:10px 12px}
-.dtOpcja small{display:block;font-weight:400;font-size:11px;opacity:.7;margin-top:2px}
-.dtOpcja.wybrany{background:var(--jupiter);color:#12181e}
-.kmTab{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:13px}
-.kmTab caption{text-align:left;font-family:var(--disp);font-size:17px;padding:6px 0;color:#cfdae4}
-.kmTab td{padding:5px 4px;border-bottom:1px solid #1a2531}
-.kmTab tr.ja td{background:rgba(255,231,188,.1)}
-.kmTab .nr{width:24px;color:#7f8f9d;font-family:var(--disp);font-weight:700}
-.kmTab .bg{color:#9fb0bf;font-size:12px}
-.kmTab .sm{text-align:right;width:44px;font-family:var(--disp);font-weight:700;font-size:16px}
-#meczBtn{font-family:var(--disp);font-size:22px;font-weight:600;letter-spacing:.03em;padding:15px 32px;
-  background:#2a3a2c;color:#d6e6d8;border:1px solid #3c5540;cursor:pointer;transition:.14s}
-#meczBtn:hover{background:#35492f}
+      .dotyk {
+        position: absolute;
+        inset: auto 0 0 0;
+        height: 132px;
+        pointer-events: none;
+      }
+      .dotyk button {
+        position: absolute;
+        bottom: 14px;
+        width: 76px;
+        height: 76px;
+        border-radius: 50%;
+        pointer-events: auto;
+        background: rgba(20, 30, 40, 0.62);
+        border: 1px solid rgba(140, 165, 185, 0.3);
+        color: #dfe8ef;
+        font: 700 14px var(--disp);
+      }
+      .dotyk button:active {
+        background: rgba(255, 231, 188, 0.34);
+      }
+      .dotyk [data-k="lewo"] {
+        left: 14px;
+      }
+      .dotyk [data-k="prawo"] {
+        left: 100px;
+      }
+      .dotyk [data-k="sprzeglo"] {
+        right: 100px;
+      }
+      .dotyk [data-k="gaz"] {
+        right: 14px;
+        background: rgba(31, 190, 74, 0.42);
+      }
 
-/* ---------- zasłony ---------- */
-.zaslona{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;
-  background:rgba(6,10,14,.82);backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);padding:20px}
-.zaslona[hidden]{display:none}
-.zaslona h2{font-family:var(--disp);font-size:40px;font-weight:700;margin-bottom:6px}
-.zaslona p{color:#9fb0bf;font-size:14px}
-.zaslona kbd{display:inline-block;padding:1px 6px;background:#1b2833;border:1px solid #2e3f4d;font-size:12px}
-.karta{width:min(560px,100%);max-height:calc(100% - 24px);overflow:auto;
-  background:#0e161e;border:1px solid #24333f;padding:clamp(16px,3vh,26px) clamp(16px,3vw,26px)}
-#wynikTabela{width:100%;border-collapse:collapse;margin-top:14px;font-variant-numeric:tabular-nums}
-#wynikTabela td{padding:9px 6px;border-bottom:1px solid #1c2833;font-size:14.5px}
-#wynikTabela tr.ja td{background:rgba(255,231,188,.1)}
-#wynikTabela .m{font-family:var(--disp);font-weight:700;font-size:20px;width:30px;color:#8496a4}
-#wynikTabela .c{width:15px}
-#wynikTabela .c i{display:block;width:14px;height:14px;border-radius:2px;border:1px solid rgba(0,0,0,.5)}
-#wynikTabela .p{text-align:right;font-family:var(--disp);font-weight:700;font-size:22px;width:44px}
-#wynikTabela .t{text-align:right;color:#8fa0ae;font-size:12.5px;width:74px}
-.opisWyniku{margin-top:14px;font-size:13px;line-height:1.6}
-.przyciski{display:flex;gap:10px;margin-top:20px}
-.przyciski .opcja{padding:12px 18px;font-size:14px}
-.opcja.gl{background:var(--jupiter);border-color:var(--jupiter);color:#12181e}
-#ladowanie{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;
-  background:#080c11;color:#8fa0ae;font-family:var(--disp);font-size:20px;letter-spacing:.2em}
+      /* ---------- TRYB MECZU ---------- */
+      .ekran {
+        position: fixed;
+        inset: 0;
+        z-index: 45;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        background:
+          radial-gradient(
+            900px 480px at 50% -10%,
+            rgba(255, 231, 188, 0.13),
+            transparent 60%
+          ),
+          linear-gradient(#080c11, #0d141c 55%, #131a20);
+      }
+      .ekWrap {
+        width: min(940px, 96vw);
+        max-height: 96vh;
+        overflow: auto;
+        padding: clamp(14px, 3vh, 30px) clamp(14px, 3vw, 30px);
+      }
+      .ekWrap.szeroki {
+        width: min(1120px, 97vw);
+      }
+      .ekran h2 {
+        font-family: var(--disp);
+        font-size: clamp(26px, 4.4vw, 40px);
+        font-weight: 700;
+        margin-bottom: 6px;
+      }
+      .ekPod {
+        font-size: 13.5px;
+        color: #9fb0bf;
+        line-height: 1.55;
+        margin-bottom: 14px;
+      }
+      .dwieKol {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      @media (max-width: 700px) {
+        .dwieKol {
+          grid-template-columns: 1fr;
+        }
+      }
+      .kolNag {
+        font-family: var(--disp);
+        font-size: 17px;
+        color: #93a5b4;
+        margin-bottom: 6px;
+        letter-spacing: 0.1em;
+      }
+      .kolKlubow {
+        max-height: 44vh;
+        overflow: auto;
+        border: 1px solid #22303d;
+        background: #0f1720;
+      }
+      .ligaNag {
+        font: 600 11px var(--body);
+        letter-spacing: 0.16em;
+        color: #7f8f9d;
+        padding: 8px 10px 4px;
+        background: #101922;
+      }
+      .klub {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        width: 100%;
+        padding: 7px 10px;
+        background: none;
+        border: 0;
+        border-bottom: 1px solid #1b2733;
+        color: #cfdae4;
+        font: inherit;
+        font-size: 13px;
+        cursor: pointer;
+        text-align: left;
+      }
+      .klub:hover {
+        background: #16222d;
+      }
+      .klub.wybrany {
+        background: linear-gradient(90deg, var(--b1) 0 4px, #1b2b3a 4px);
+      }
+      .klub u {
+        flex: 1;
+        text-decoration: none;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .klub em {
+        font-style: normal;
+        font-size: 11px;
+        color: #7f8f9d;
+      }
+      .herb {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 34px;
+        height: 20px;
+        border-radius: 3px;
+        background: var(--b1);
+        color: #0d1117;
+        font: 700 11px var(--disp);
+        letter-spacing: 0.06em;
+        border: 2px solid var(--b2);
+        margin: 0 4px;
+      }
+      .infoMecz {
+        font-size: 13px;
+        color: #b9c6d1;
+        line-height: 1.6;
+        margin: 12px 0;
+      }
+      .ostrz {
+        color: #f2c500;
+      }
+      .stronaWyb {
+        max-width: 420px;
+        margin-bottom: 12px;
+      }
+      .listaZaw {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+        gap: 9px;
+      }
+      .zawKarta {
+        background: #101922;
+        border: 1px solid #22303d;
+        padding: 9px;
+        text-align: left;
+        color: #cfdae4;
+        font: inherit;
+        cursor: pointer;
+      }
+      .zawKarta:hover {
+        background: #16222d;
+      }
+      .zawKarta.wybrany {
+        border-color: var(--jupiter);
+        background: #16222d;
+      }
+      .zawNr {
+        font-family: var(--disp);
+        font-size: 22px;
+        font-weight: 700;
+        color: #7f8f9d;
+        float: right;
+      }
+      .zawGl b {
+        display: block;
+        font-size: 14px;
+      }
+      .zawGl em {
+        font-style: normal;
+        font-size: 11px;
+        color: #8fa0ae;
+      }
+      .zawStat {
+        margin: 7px 0 4px;
+        font-size: 10px;
+        color: #7f8f9d;
+      }
+      .zawStat span {
+        display: inline-block;
+        width: 32px;
+      }
+      .zawStat i {
+        display: inline-block;
+        height: 4px;
+        background: var(--jupiter);
+        vertical-align: middle;
+        margin-bottom: 1px;
+      }
+      .zawStarty {
+        font-size: 11px;
+        color: #8fa0ae;
+      }
+      .tytulMeczu {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        flex-wrap: wrap;
+        font-size: clamp(18px, 3vw, 28px);
+      }
+      .tytulMeczu s {
+        text-decoration: none;
+        color: var(--jupiter);
+      }
+      .przelacznikWidoku {
+        max-width: 400px;
+        margin-bottom: 9px;
+      }
+      .kartaProg {
+        max-height: 56vh;
+        overflow: auto;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      @media (max-width: 820px) {
+        .kartaProg {
+          grid-template-columns: 1fr;
+        }
+      }
+      .kpTab {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 11.5px;
+        font-variant-numeric: tabular-nums;
+      }
+      .kpTab caption {
+        text-align: left;
+        font-family: var(--disp);
+        font-size: 15px;
+        padding: 4px 0;
+        color: #cfdae4;
+      }
+      .kpTab th {
+        background: #16212c;
+        color: #8fa0ae;
+        font: 600 10px var(--body);
+        letter-spacing: 0.06em;
+        padding: 4px 2px;
+        border-bottom: 1px solid #2a3947;
+      }
+      .kpTab td {
+        padding: 4px 2px;
+        border-bottom: 1px solid #1a2531;
+        text-align: center;
+        color: #cfdae4;
+      }
+      .kpTab td.nz {
+        text-align: left;
+        padding-left: 5px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 118px;
+      }
+      .kpTab td.nr {
+        width: 20px;
+        color: #7f8f9d;
+        font-family: var(--disp);
+        font-weight: 700;
+      }
+      .kpTab td.sm {
+        font-family: var(--disp);
+        font-weight: 700;
+        font-size: 14px;
+        color: #ffe7bc;
+      }
+      .kpTab td.nom {
+        background: #141d27;
+      }
+      .kpTab tr.jaDr td {
+        background: rgba(255, 231, 188, 0.07);
+      }
+      .kpTab tr.jaDr td.nom {
+        background: rgba(255, 231, 188, 0.12);
+      }
+      .kpU {
+        color: #e8332a;
+        font-weight: 700;
+      }
+      .program {
+        border: 1px solid #22303d;
+        background: #0f1720;
+        max-height: 56vh;
+        overflow: auto;
+      }
+      .wBieg {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 5px 8px;
+        border-bottom: 1px solid #1a2531;
+        font-size: 12px;
+      }
+      .wBieg s {
+        text-decoration: none;
+        font-family: var(--disp);
+        font-weight: 700;
+        width: 22px;
+        color: #7f8f9d;
+      }
+      .wBieg.teraz {
+        background: #1a2937;
+        box-shadow: inset 3px 0 0 var(--jupiter);
+      }
+      .wBieg.zrobiony {
+        opacity: 0.62;
+      }
+      .wBieg.mojBieg s {
+        color: var(--jupiter);
+      }
+      .wZaw {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        padding: 1px 6px;
+        background: #16212c;
+        border-radius: 2px;
+        margin-right: 3px;
+      }
+      .wZaw.ja {
+        background: rgba(255, 231, 188, 0.16);
+      }
+      .wZaw i {
+        width: 9px;
+        height: 9px;
+        border-radius: 2px;
+        border: 1px solid rgba(0, 0, 0, 0.5);
+      }
+      .wZaw u {
+        text-decoration: none;
+        max-width: 96px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .wZaw b {
+        color: var(--jupiter);
+      }
+      .doUstal {
+        font-style: normal;
+        color: #6a7a88;
+        font-size: 11.5px;
+      }
+      .paskDecyzji {
+        margin-top: 10px;
+      }
+      .symLicze {
+        margin-top: 10px;
+        color: #9fb0bf;
+        font-size: 13px;
+      }
+      .pbLista {
+        display: grid;
+        gap: 7px;
+        margin: 12px 0;
+      }
+      .pbZaw {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        background: #101922;
+        border: 1px solid #22303d;
+        padding: 9px 11px;
+      }
+      .pbZaw.ja {
+        border-color: var(--jupiter);
+      }
+      .pbKask {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font: 700 15px var(--disp);
+        color: rgba(0, 0, 0, 0.65);
+        border: 2px solid rgba(0, 0, 0, 0.35);
+      }
+      .pbOpis b {
+        display: block;
+        font-size: 15px;
+      }
+      .pbOpis em {
+        font-style: normal;
+        font-size: 11.5px;
+        color: #8fa0ae;
+      }
+      .tablicaWyniku {
+        font-family: var(--disp);
+        font-size: 22px;
+        text-align: center;
+        color: #9fb0bf;
+        margin: 10px 0;
+      }
+      .tablicaWyniku b {
+        color: #e6edf3;
+        font-size: 28px;
+      }
+      .wbTab {
+        width: 100%;
+        border-collapse: collapse;
+        font-variant-numeric: tabular-nums;
+      }
+      .wbTab td {
+        padding: 8px 6px;
+        border-bottom: 1px solid #1c2833;
+        font-size: 14px;
+      }
+      .wbTab tr.ja td {
+        background: rgba(255, 231, 188, 0.1);
+      }
+      .wbTab .m {
+        font-family: var(--disp);
+        font-weight: 700;
+        width: 26px;
+        color: #8fa0ae;
+      }
+      .wbTab .c {
+        width: 14px;
+      }
+      .wbTab .c i {
+        display: block;
+        width: 13px;
+        height: 13px;
+        border-radius: 2px;
+      }
+      .wbTab .k {
+        width: 44px;
+        color: #8fa0ae;
+        font-size: 12px;
+      }
+      .wbTab .p {
+        text-align: right;
+        width: 44px;
+        font-family: var(--disp);
+        font-weight: 700;
+        font-size: 19px;
+      }
+      .wbTab sup {
+        color: #7ee08e;
+        font-size: 11px;
+      }
+      .upadekU {
+        color: #e8332a;
+      }
+      .dtOpcje {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 8px;
+      }
+      .dtOpcja {
+        text-align: left;
+        padding: 10px 12px;
+      }
+      .dtOpcja small {
+        display: block;
+        font-weight: 400;
+        font-size: 11px;
+        opacity: 0.7;
+        margin-top: 2px;
+      }
+      .dtOpcja.wybrany {
+        background: var(--jupiter);
+        color: #12181e;
+      }
+      .kmTab {
+        width: 100%;
+        border-collapse: collapse;
+        font-variant-numeric: tabular-nums;
+        font-size: 13px;
+      }
+      .kmTab caption {
+        text-align: left;
+        font-family: var(--disp);
+        font-size: 17px;
+        padding: 6px 0;
+        color: #cfdae4;
+      }
+      .kmTab td {
+        padding: 5px 4px;
+        border-bottom: 1px solid #1a2531;
+      }
+      .kmTab tr.ja td {
+        background: rgba(255, 231, 188, 0.1);
+      }
+      .kmTab .nr {
+        width: 24px;
+        color: #7f8f9d;
+        font-family: var(--disp);
+        font-weight: 700;
+      }
+      .kmTab .bg {
+        color: #9fb0bf;
+        font-size: 12px;
+      }
+      .kmTab .sm {
+        text-align: right;
+        width: 44px;
+        font-family: var(--disp);
+        font-weight: 700;
+        font-size: 16px;
+      }
+      #meczBtn {
+        font-family: var(--disp);
+        font-size: 22px;
+        font-weight: 600;
+        letter-spacing: 0.03em;
+        padding: 15px 32px;
+        background: #2a3a2c;
+        color: #d6e6d8;
+        border: 1px solid #3c5540;
+        cursor: pointer;
+        transition: 0.14s;
+      }
+      #meczBtn:hover {
+        background: #35492f;
+      }
 
-/* mało miejsca w pionie: mniej treści, żeby menu nie musiało się mocno pomniejszać */
-@media (max-height:720px){
-  h1{font-size:clamp(30px,5.4vw,52px)}
-  .podtytul,.stopka{display:none}
-  .opis{min-height:0;-webkit-line-clamp:2;display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden}
-  .sekcja{margin-top:14px}
-  .kask{height:44px}.kask b{font-size:26px}
-  .start{margin-top:16px}
-  #jedziemy{padding:12px 34px;font-size:22px}
-}
-@media (max-height:560px){
-  .opis{display:none}
-  .stat{margin-top:4px}
-  .naglowek{padding-bottom:8px}
-}
-@media (max-width:600px){
-  .imie{font-size:19px}
-  .opcja{min-width:0;padding:8px 6px;font-size:12px}
-  .opcja small{display:none}
-}
-</style>
+      /* ---------- zasłony ---------- */
+      .zaslona {
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(6, 10, 14, 0.82);
+        backdrop-filter: blur(9px);
+        -webkit-backdrop-filter: blur(9px);
+        padding: 20px;
+      }
+      .zaslona[hidden] {
+        display: none;
+      }
+      .zaslona h2 {
+        font-family: var(--disp);
+        font-size: 40px;
+        font-weight: 700;
+        margin-bottom: 6px;
+      }
+      .zaslona p {
+        color: #9fb0bf;
+        font-size: 14px;
+      }
+      .zaslona kbd {
+        display: inline-block;
+        padding: 1px 6px;
+        background: #1b2833;
+        border: 1px solid #2e3f4d;
+        font-size: 12px;
+      }
+      .karta {
+        width: min(560px, 100%);
+        max-height: calc(100% - 24px);
+        overflow: auto;
+        background: #0e161e;
+        border: 1px solid #24333f;
+        padding: clamp(16px, 3vh, 26px) clamp(16px, 3vw, 26px);
+      }
+      #wynikTabela {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 14px;
+        font-variant-numeric: tabular-nums;
+      }
+      #wynikTabela td {
+        padding: 9px 6px;
+        border-bottom: 1px solid #1c2833;
+        font-size: 14.5px;
+      }
+      #wynikTabela tr.ja td {
+        background: rgba(255, 231, 188, 0.1);
+      }
+      #wynikTabela .m {
+        font-family: var(--disp);
+        font-weight: 700;
+        font-size: 20px;
+        width: 30px;
+        color: #8496a4;
+      }
+      #wynikTabela .c {
+        width: 15px;
+      }
+      #wynikTabela .c i {
+        display: block;
+        width: 14px;
+        height: 14px;
+        border-radius: 2px;
+        border: 1px solid rgba(0, 0, 0, 0.5);
+      }
+      #wynikTabela .p {
+        text-align: right;
+        font-family: var(--disp);
+        font-weight: 700;
+        font-size: 22px;
+        width: 44px;
+      }
+      #wynikTabela .t {
+        text-align: right;
+        color: #8fa0ae;
+        font-size: 12.5px;
+        width: 74px;
+      }
+      .opisWyniku {
+        margin-top: 14px;
+        font-size: 13px;
+        line-height: 1.6;
+      }
+      .przyciski {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+      }
+      .przyciski .opcja {
+        padding: 12px 18px;
+        font-size: 14px;
+      }
+      .opcja.gl {
+        background: var(--jupiter);
+        border-color: var(--jupiter);
+        color: #12181e;
+      }
+      #ladowanie {
+        position: fixed;
+        inset: 0;
+        z-index: 70;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #080c11;
+        color: #8fa0ae;
+        font-family: var(--disp);
+        font-size: 20px;
+        letter-spacing: 0.2em;
+      }
 
-<div id="ladowanie">PRZYGOTOWANIE TORU…</div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/SkeletonUtils.js"></script>
-<script src="js/kevlar.js"></script>
-<script src="js/zawodnik3d.js"></script>
-<script src="js/gra.js"></script>
-</body>
+      /* mało miejsca w pionie: mniej treści, żeby menu nie musiało się mocno pomniejszać */
+      @media (max-height: 720px) {
+        h1 {
+          font-size: clamp(30px, 5.4vw, 52px);
+        }
+        .podtytul,
+        .stopka {
+          display: none;
+        }
+        .opis {
+          min-height: 0;
+          -webkit-line-clamp: 2;
+          display: -webkit-box;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+        .sekcja {
+          margin-top: 14px;
+        }
+        .kask {
+          height: 44px;
+        }
+        .kask b {
+          font-size: 26px;
+        }
+        .start {
+          margin-top: 16px;
+        }
+        #jedziemy {
+          padding: 12px 34px;
+          font-size: 22px;
+        }
+      }
+      @media (max-height: 560px) {
+        .opis {
+          display: none;
+        }
+        .stat {
+          margin-top: 4px;
+        }
+        .naglowek {
+          padding-bottom: 8px;
+        }
+      }
+      @media (max-width: 600px) {
+        .imie {
+          font-size: 19px;
+        }
+        .opcja {
+          min-width: 0;
+          padding: 8px 6px;
+          font-size: 12px;
+        }
+        .opcja small {
+          display: none;
+        }
+      }
+    </style>
+
+    <div id="ladowanie">PRZYGOTOWANIE TORU…</div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/SkeletonUtils.js"></script>
+    <script src="js/kevlar.js"></script>
+    <script src="js/zawodnik3d.js"></script>
+    <script src="js/gra.js"></script>
+  </body>
 </html>
